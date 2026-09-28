@@ -141,7 +141,6 @@ int main()
 
     /* Calculations */
     double subTotal = itemQuantity * itemPrice;
-
     bool member = (isMember == 'Y' || isMember == 'y');
 
     double discount = 0.0;
@@ -150,8 +149,46 @@ int main()
     }
 
     double discountedSubTotal = subTotal - discount;
-    double tax = discountedSubTotal * 0.10;
-    double total = discountedSubTotal + tax;
+
+    // Phase 5: Individual Taxes
+    double stateTax = discountedSubTotal * 0.065;      // 6.5%
+    double countyTax = discountedSubTotal * 0.005;     // 0.5%
+    double cityTax = discountedSubTotal * 0.02125;     // 2.125%
+    double totalTax = stateTax + countyTax + cityTax;
+
+    // Phase 5: Tip Menu
+    double tip15 = discountedSubTotal * 0.15;
+    double tip20 = discountedSubTotal * 0.20;
+    double tip25 = discountedSubTotal * 0.25;
+
+    cout << "\n=================== TIP MENU ===================" << endl;
+    cout << left << setw(20) << "Tip Selection" << "Amount" << endl;
+    cout << "--------------------------------------------" << endl;
+    cout << left << setw(20) << "A. 15%" << "$" << tip15 << endl;
+    cout << left << setw(20) << "B. 20%" << "$" << tip20 << endl;
+    cout << left << setw(20) << "C. 25%" << "$" << tip25 << endl;
+    cout << left << setw(20) << "D. Other Amount" << endl;
+    cout << "============================================" << endl;
+
+    char tipChoice;
+    double tipAmount = 0.0;
+
+    cout << "What tip do you choose? ";
+    cin >> tipChoice;
+
+    if (tipChoice == 'A' || tipChoice == 'a') {
+        tipAmount = tip15;
+    } else if (tipChoice == 'B' || tipChoice == 'b') {
+        tipAmount = tip20;
+    } else if (tipChoice == 'C' || tipChoice == 'c') {
+        tipAmount = tip25;
+    } else if (tipChoice == 'D' || tipChoice == 'd') {
+        cout << "How much would you like to tip? $";
+        cin >> tipAmount;
+    }
+
+    // Final Total Calculation
+    double total = discountedSubTotal + totalTax + tipAmount;
 
     /* Output */
     cout << fixed << setprecision(2) << "--------------------- RECEIPT ---------------------" << endl;
@@ -173,10 +210,18 @@ int main()
     }
     cout << "---------------------------------------------------" << endl;
 
-    cout << right << setw(15) << "Sub Total: " << "$" << subTotal << endl;
-    cout << right << setw(15) << "Discount: " << "$" << discount << endl;
-    cout << right << setw(15) << "Tax: " << "$" << tax << endl;
-    cout << right << setw(15) << "Total: " << "$" << total << endl;
+   cout << right << setw(20) << "Sub Total: " << "$" << subTotal << endl;
+    cout << right << setw(20) << "Discount: " << "$" << discount << endl;
+    
+    cout << "\n--- TAX BREAKDOWN ---" << endl;
+    cout << left << setw(22) << "AR State Tax (6.5%):" << "$" << stateTax << endl;
+    cout << left << setw(22) << "Faulkner Co Tax (0.5%):" << "$" << countyTax << endl;
+    cout << left << setw(22) << "Conway Tax (2.125%):" << "$" << cityTax << endl;
+    cout << left << setw(22) << "Total Tax:" << "$" << totalTax << endl;
+
+    cout << "-------------------" << endl;
+    cout << left << setw(22) << "Tip:" << "$" << tipAmount << endl;
+    cout << left << setw(22) << "Total:" << "$" << total << endl;
 
     cout << "---------------------------------------------------" << endl;
     cout << right << setw(15) << "Notes: " << notes << endl;
@@ -185,6 +230,6 @@ int main()
     cout << left << setw(15) << "Item" << setw(10) << "Quantity" << setw(10) << "Price" << endl;
 
     cout << left << setw(15) << itemName << setw(10) << itemQuantity << setw(10) << itemPrice << endl;
-
+    
     return 0;
 }
