@@ -6,10 +6,10 @@ using namespace std;
 int main()
 {
     // Variables
-    int menuChoice, itemQuantity, basePrice, priceIncrease, sizeChoiceMultiple;
+    int menuChoice, itemQuantity, sizeChoiceMultiple;
     char sizeChoice, isMember, tipChoice;
     string itemName, sizeString, notes;
-    double itemPrice = 0.0;
+    double basePrice, priceIncrease, itemPrice = 0.0;
 
     cout << fixed << setprecision(2);
 
