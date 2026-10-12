@@ -1,0 +1,7 @@
+Daily Inventory
+Item                       Start      Change         End
+Muffins                       50           0          50
+Coffee                        50           0          50
+Hashbrowns                    50         -47           3
+Cakepops                      50           0          50
+Sandwich                      50         -40          10

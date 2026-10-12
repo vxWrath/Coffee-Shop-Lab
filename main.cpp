@@ -18,10 +18,15 @@ int main()
     int totalCustomers = 0;
     char nextCustomer = ' ';
 
-    // Load menu from file: "<name> <small price> <per-size increase>" per line
+    // Load menu from file: "<name> <small price> <per-size increase> <starting stock>" per line
     string menuItem1, menuItem2, menuItem3, menuItem4, menuItem5;
     double menuItem1Price, menuItem2Price, menuItem3Price, menuItem4Price, menuItem5Price;
     double menuItem1Increase, menuItem2Increase, menuItem3Increase, menuItem4Increase, menuItem5Increase;
+
+    // Stock is the count we started the day with and never changes. Sold accumulates
+    // across every customer so that at the end we can report the change and what is left.
+    int menuItem1Stock, menuItem2Stock, menuItem3Stock, menuItem4Stock, menuItem5Stock;
+    int menuItem1Sold = 0, menuItem2Sold = 0, menuItem3Sold = 0, menuItem4Sold = 0, menuItem5Sold = 0;
 
     ifstream menuFile("menu.txt");
 
@@ -30,16 +35,16 @@ int main()
         return 1;
     }
 
-    menuFile >> menuItem1 >> menuItem1Price >> menuItem1Increase;
-    menuFile >> menuItem2 >> menuItem2Price >> menuItem2Increase;
-    menuFile >> menuItem3 >> menuItem3Price >> menuItem3Increase;
-    menuFile >> menuItem4 >> menuItem4Price >> menuItem4Increase;
-    menuFile >> menuItem5 >> menuItem5Price >> menuItem5Increase;
+    menuFile >> menuItem1 >> menuItem1Price >> menuItem1Increase >> menuItem1Stock;
+    menuFile >> menuItem2 >> menuItem2Price >> menuItem2Increase >> menuItem2Stock;
+    menuFile >> menuItem3 >> menuItem3Price >> menuItem3Increase >> menuItem3Stock;
+    menuFile >> menuItem4 >> menuItem4Price >> menuItem4Increase >> menuItem4Stock;
+    menuFile >> menuItem5 >> menuItem5Price >> menuItem5Increase >> menuItem5Stock;
 
     // Check the reads themselves, not just the open. Without this a malformed file
     // loads empty names and garbage prices and the program runs anyway.
     if (!menuFile) {
-        cout << "Error: menu.txt is malformed. Each line needs a name, a price, and an increase.\n";
+        cout << "Error: menu.txt is malformed. Each line needs a name, a price, an increase, and a starting stock.\n";
         return 1;
     }
 
@@ -140,6 +145,16 @@ int main()
             double currentOrderCost = itemPrice * itemQuantity;
             runningSubtotal += currentOrderCost;
             totalItemsOrdered += itemQuantity;
+
+            // Log the sale against inventory. Size is not a factor here: a small,
+            // a medium, and a large each count as one item.
+            switch (menuChoice) {
+                case 1: menuItem1Sold += itemQuantity; break;
+                case 2: menuItem2Sold += itemQuantity; break;
+                case 3: menuItem3Sold += itemQuantity; break;
+                case 4: menuItem4Sold += itemQuantity; break;
+                case 5: menuItem5Sold += itemQuantity; break;
+            }
 
             // Work in whole cents: to_string on a double always prints 6 decimal places
             int orderCostCents = (int)(currentOrderCost * 100 + 0.5);
@@ -247,6 +262,25 @@ int main()
         cout << "Loyalty Points: " << stars << "\n";
         cout << "----------------------------------------\n";
 
+        fstream receiptFile("receipt.txt");
+        receiptFile << "\n\n------------------- RECEIPT -------------------\n";
+        receiptFile << "Customer: " << customerName << "\n";
+        receiptFile << "----------------------------------------\n";
+        receiptFile << orderSummary;
+        receiptFile << "----------------------------------------\n";
+        receiptFile << left << setw(28) << "Subtotal:" << right << setw(4) << "$" << setw(8) << runningSubtotal << "\n";
+        receiptFile << left << setw(28) << "Discount:" << right << setw(4) << "-$" << setw(8) << discount << "\n";
+        receiptFile << left << setw(28) << "Tax:" << right << setw(4) << "$" << setw(8) << totalTax << "\n";
+        receiptFile << left << setw(28) << "Tip:" << right << setw(4) << "$" << setw(8) << tipAmount << "\n";
+        receiptFile << "----------------------------------------\n";
+        receiptFile << left << setw(28) << "TOTAL:" << right << setw(4) << "$" << setw(8) << total << "\n";
+        receiptFile << "----------------------------------------\n";
+        receiptFile << "Member:   " << (member ? "Yes" : "No") << "\n";
+        receiptFile << "Notes:    " << notes << "\n";
+        receiptFile << "Loyalty Points: " << stars << "\n";
+        receiptFile << "----------------------------------------\n";
+        receiptFile.close();
+
         grandTotalSales += total;
         totalCustomers++;
 
@@ -272,6 +306,27 @@ int main()
 
     cout << "\n\nTotal Customers: " << totalCustomers << "\n";
     cout << "Grant Total: " << grandTotalSales << "\n";
+
+    // DAILY INVENTORY: every item on the menu is listed, including ones nobody ordered
+    cout << "\nDaily Inventory\n";
+    cout << left << setw(20) << "Item" << right << setw(12) << "Start" << setw(12) << "Change" << setw(12) << "End" << "\n";
+
+    cout << left << setw(20) << menuItem1 << right << setw(12) << menuItem1Stock << setw(12) << -menuItem1Sold << setw(12) << (menuItem1Stock - menuItem1Sold) << "\n";
+    cout << left << setw(20) << menuItem2 << right << setw(12) << menuItem2Stock << setw(12) << -menuItem2Sold << setw(12) << (menuItem2Stock - menuItem2Sold) << "\n";
+    cout << left << setw(20) << menuItem3 << right << setw(12) << menuItem3Stock << setw(12) << -menuItem3Sold << setw(12) << (menuItem3Stock - menuItem3Sold) << "\n";
+    cout << left << setw(20) << menuItem4 << right << setw(12) << menuItem4Stock << setw(12) << -menuItem4Sold << setw(12) << (menuItem4Stock - menuItem4Sold) << "\n";
+    cout << left << setw(20) << menuItem5 << right << setw(12) << menuItem5Stock << setw(12) << -menuItem5Sold << setw(12) << (menuItem5Stock - menuItem5Sold) << "\n";
+
+    ofstream inventoryFile("inventory.txt");
+    inventoryFile << "Daily Inventory\n";
+    inventoryFile << left << setw(20) << "Item" << right << setw(12) << "Start" << setw(12) << "Change" << setw(12) << "End" << "\n";
+
+    inventoryFile << left << setw(20) << menuItem1 << right << setw(12) << menuItem1Stock << setw(12) << -menuItem1Sold << setw(12) << (menuItem1Stock - menuItem1Sold) << "\n";
+    inventoryFile << left << setw(20) << menuItem2 << right << setw(12) << menuItem2Stock << setw(12) << -menuItem2Sold << setw(12) << (menuItem2Stock - menuItem2Sold) << "\n";
+    inventoryFile << left << setw(20) << menuItem3 << right << setw(12) << menuItem3Stock << setw(12) << -menuItem3Sold << setw(12) << (menuItem3Stock - menuItem3Sold) << "\n";
+    inventoryFile << left << setw(20) << menuItem4 << right << setw(12) << menuItem4Stock << setw(12) << -menuItem4Sold << setw(12) << (menuItem4Stock - menuItem4Sold) << "\n";
+    inventoryFile << left << setw(20) << menuItem5 << right << setw(12) << menuItem5Stock << setw(12) << -menuItem5Sold << setw(12) << (menuItem5Stock - menuItem5Sold) << "\n";
+    inventoryFile.close();
 
     return 0;
 }
