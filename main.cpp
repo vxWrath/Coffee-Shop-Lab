@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <cctype>
 #include <limits>
+#include <fstream>
 
 using namespace std;
 
@@ -16,6 +17,33 @@ int main()
     double grandTotalSales = 0.0;
     int totalCustomers = 0;
     char nextCustomer = ' ';
+
+    // Load menu from file: "<name> <small price> <per-size increase>" per line
+    string menuItem1, menuItem2, menuItem3, menuItem4, menuItem5;
+    double menuItem1Price, menuItem2Price, menuItem3Price, menuItem4Price, menuItem5Price;
+    double menuItem1Increase, menuItem2Increase, menuItem3Increase, menuItem4Increase, menuItem5Increase;
+
+    ifstream menuFile("menu.txt");
+
+    if (!menuFile) {
+        cout << "Error: could not open menu.txt\n";
+        return 1;
+    }
+
+    menuFile >> menuItem1 >> menuItem1Price >> menuItem1Increase;
+    menuFile >> menuItem2 >> menuItem2Price >> menuItem2Increase;
+    menuFile >> menuItem3 >> menuItem3Price >> menuItem3Increase;
+    menuFile >> menuItem4 >> menuItem4Price >> menuItem4Increase;
+    menuFile >> menuItem5 >> menuItem5Price >> menuItem5Increase;
+
+    // Check the reads themselves, not just the open. Without this a malformed file
+    // loads empty names and garbage prices and the program runs anyway.
+    if (!menuFile) {
+        cout << "Error: menu.txt is malformed. Each line needs a name, a price, and an increase.\n";
+        return 1;
+    }
+
+    menuFile.close();
 
     cout << fixed << setprecision(2);
 
@@ -39,13 +67,13 @@ int main()
         // MAIN ORDERING LOOP
         while (true) {
             cout << "\n----------------------- MENU ----------------------\n";
-            cout << left << setw(18) << "Item" << setw(12) << "Small (s)" << setw(12) << "Medium (m)" << setw(12) << "Large (l)\n";
+            cout << left << setw(18) << "Item" << setw(12) << "Small (s)" << setw(12) << "Medium (m)" << setw(12) << "Large (l)" << "\n";
             cout << "---------------------------------------------------\n";
-            cout << setw(18) << "1. Muffins"   << setw(12) << "$3.00" << setw(12) << "$5.00" << "$7.00\n";
-            cout << setw(18) << "2. Coffee"    << setw(12) << "$1.50" << setw(12) << "$3.00" << "$4.50\n";
-            cout << setw(18) << "3. Hashbrowns"<< setw(12) << "$1.00" << setw(12) << "$3.00" << "$5.00\n";
-            cout << setw(18) << "4. Cakepops"  << setw(12) << "$0.50" << setw(12) << "$1.50" << "$2.50\n";
-            cout << setw(18) << "5. Sandwich"  << setw(12) << "$6.00" << setw(12) << "$8.00" << "$10.00\n";
+            cout << setw(18) << ("1. " + menuItem1) << "$" << setw(11) << menuItem1Price << "$" << setw(11) << (menuItem1Price + menuItem1Increase) << "$" << (menuItem1Price + menuItem1Increase * 2) << "\n";
+            cout << setw(18) << ("2. " + menuItem2) << "$" << setw(11) << menuItem2Price << "$" << setw(11) << (menuItem2Price + menuItem2Increase) << "$" << (menuItem2Price + menuItem2Increase * 2) << "\n";
+            cout << setw(18) << ("3. " + menuItem3) << "$" << setw(11) << menuItem3Price << "$" << setw(11) << (menuItem3Price + menuItem3Increase) << "$" << (menuItem3Price + menuItem3Increase * 2) << "\n";
+            cout << setw(18) << ("4. " + menuItem4) << "$" << setw(11) << menuItem4Price << "$" << setw(11) << (menuItem4Price + menuItem4Increase) << "$" << (menuItem4Price + menuItem4Increase * 2) << "\n";
+            cout << setw(18) << ("5. " + menuItem5) << "$" << setw(11) << menuItem5Price << "$" << setw(11) << (menuItem5Price + menuItem5Increase) << "$" << (menuItem5Price + menuItem5Increase * 2) << "\n";
             cout << setw(18) << "6. Checkout"  << "\n";
             cout << "---------------------------------------------------\n";
 
@@ -68,13 +96,13 @@ int main()
                 break;
             }
 
-            // Item base prices
+            // Item names and base prices come from the menu file
             switch (menuChoice) {
-                case 1: itemName = "Muffins";    basePrice = 3.00; priceIncrease = 2.00; break;
-                case 2: itemName = "Coffee";     basePrice = 1.50; priceIncrease = 1.50; break;
-                case 3: itemName = "Hashbrowns"; basePrice = 1.00; priceIncrease = 2.00; break;
-                case 4: itemName = "Cakepops";   basePrice = 0.50; priceIncrease = 1.00; break;
-                case 5: itemName = "Sandwich";   basePrice = 6.00; priceIncrease = 2.00; break;
+                case 1: itemName = menuItem1; basePrice = menuItem1Price; priceIncrease = menuItem1Increase; break;
+                case 2: itemName = menuItem2; basePrice = menuItem2Price; priceIncrease = menuItem2Increase; break;
+                case 3: itemName = menuItem3; basePrice = menuItem3Price; priceIncrease = menuItem3Increase; break;
+                case 4: itemName = menuItem4; basePrice = menuItem4Price; priceIncrease = menuItem4Increase; break;
+                case 5: itemName = menuItem5; basePrice = menuItem5Price; priceIncrease = menuItem5Increase; break;
             }
 
             // Size Selection
@@ -113,7 +141,11 @@ int main()
             runningSubtotal += currentOrderCost;
             totalItemsOrdered += itemQuantity;
 
-            string itemLine = to_string(itemQuantity) + "x " + sizeString + " " + itemName + " - $" + to_string(currentOrderCost) + "\n";
+            // Work in whole cents: to_string on a double always prints 6 decimal places
+            int orderCostCents = (int)(currentOrderCost * 100 + 0.5);
+            string orderCostText = to_string(orderCostCents / 100) + "." + (orderCostCents % 100 < 10 ? "0" : "") + to_string(orderCostCents % 100);
+
+            string itemLine = to_string(itemQuantity) + "x " + sizeString + " " + itemName + " - $" + orderCostText + "\n";
             orderSummary += itemLine;
 
             cout << "--> Added to order!\n";

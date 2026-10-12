@@ -1,0 +1,5 @@
+Muffins     3.00  2.00
+Coffee      1.50  1.50
+Hashbrowns  1.00  2.00
+Cakepops    0.50  1.00
+Sandwich    6.00  2.00
